@@ -17,10 +17,11 @@
  *
  */
 //Enable this hardware interface
-exports.enabled = false;
+exports.enabled = true;
 
 if (exports.enabled) {
     var fs = require('fs');
+    var http = require('http');
     var kodi = require('kodi-ws');
     var _ = require('lodash');
     var server = require(__dirname + '/../../libraries/HybridObjectsHardwareInterfaces');
@@ -34,13 +35,19 @@ if (exports.enabled) {
     function setup() {
         server.developerOn();
 
-        //kodiServers = JSON.parse(fs.readFileSync(__dirname + "/config.json", "utf8"));
-
         if (server.getDebug()) console.log("KODI setup");
 
         for (var key in kodiServers) {
             var kodiServer = kodiServers[key];
             kodiServer.connection = null;
+            kodiServer.bri = undefined;
+            kodiServer.hue = undefined;
+            kodiServer.sat = undefined;
+
+            //Poll for color changes
+            setInterval(function (ks) {
+                getColor(ks, server.writeIOToServer);
+            }, 200 + _.random(-50, 50), kodiServer);
 
             kodi(kodiServer.host, kodiServer.port).then(function (connection) {
                 kodiServer.connection = connection;
@@ -69,12 +76,62 @@ if (exports.enabled) {
 
             });
 
+        }
+    }
 
-            //server.addIO(key, "volume", "default", "kodi");
-            //server.addIO(key, "status", "default", "kodi");
+    /**
+     * @desc getColor() communicates with the KODI media centre and checks the ambilight color
+     * @param {Object} kodiServer the media centre to check
+     * @param {function} callback function to run when the response has arrived
+     **/
+    function getColor(kodiServer, callback) {
+        var h, s, v;
+
+        var options = {
+            host: kodiServer.host,
+            path: kodiServer.colorPath,
+            port: kodiServer.colorPort,
+            method: 'GET',
+        };
+
+        callbackHttp = function (response) {
+            var str = '';
+
+            response.on('data', function (chunk) {
+                str += chunk;
+            });
+
+            response.on('end', function () {
+                //TODO add some error handling
+                color = JSON.parse(str);
+                
+
+                if (color.h != kodiServer.hue) {
+                    kodiServer.hue = color.h; // hue is a value between 0 and 65535
+                    callback(kodiServer.id, "hue", color.h, "f"); // map hue to [0,1]
+                }
+
+                if (color.v != kodiServer.bri) {
+                    kodiServer.bri = color.v; // brightness is a value between 1 and 254
+                    callback(kodiServer.id, "brightness", color.v, "f");
+                }
+
+                if (color.s != kodiServer.sat) {
+                    kodiServer.sat = color.s;
+                    callback(kodiServer.id, "saturation", color.s, "f");
+                }
+
+            });
         }
 
-        //server.clearIO("kodi");
+
+
+        var req = http.request(options, callbackHttp);
+        req.on('error', function (e) {
+            console.log('getColor HTTP error: ' + e.message);
+        });
+        req.end();
+
     }
 
 
@@ -94,14 +151,14 @@ if (exports.enabled) {
                         if (value < 0.33) {
                             kodiServers[objName].connection.Player.Stop({ playerid: data[i].playerid });
                         } else if (value < 0.66) {
-                            kodiServers[objName].connection.Player.PlayPause({ playerid: data[i].playerid, play:false });
+                            kodiServers[objName].connection.Player.PlayPause({ playerid: data[i].playerid, play: false });
                         } else {
-                            kodiServers[objName].connection.Player.PlayPause({ playerid: data[i].playerid, play:true });
+                            kodiServers[objName].connection.Player.PlayPause({ playerid: data[i].playerid, play: true });
                         }
                     }
 
                 });
-                
+
             }
         }
     };
@@ -110,6 +167,9 @@ if (exports.enabled) {
         for (var key in kodiServers) {
             server.addIO(key, "volume", "default", "kodi");
             server.addIO(key, "status", "default", "kodi");
+            server.addIO(key, "hue", "default", "kodi");
+            server.addIO(key, "saturation", "default", "kodi");
+            server.addIO(key, "brightness", "default", "kodi");
         }
 
         server.clearIO("kodi");

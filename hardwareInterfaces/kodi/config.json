@@ -1,7 +1,9 @@
 {
   "MediaCentre": {
-    "host": "192.168.178.38",
+    "host": "192.168.178.30",
     "id": "MediaCentre",
-    "port": "9090"
+    "port": "9090",
+    "colorPort": 8080,
+    "colorPath": "/color"
   }
 }
