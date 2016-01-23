@@ -191,12 +191,13 @@ if (exports.enabled) {
                         break;
                     case 50:
                         amount = parseInt(data, 10);
-                        var ioPoints = [];
-                        for (key in ArduinoLookup) {
-                            if (ArduinoLookup[key].objName == obj) {
-                                ioPoints.push(ArduinoLookup[key].ioName);
-                            }
-                        }
+                        //I don't think this is of any use anymore - Carsten
+                        //var ioPoints = [];
+                        //for (key in ArduinoLookup) {
+                        //    if (ArduinoLookup[key].objName == obj) {
+                        //        ioPoints.push(ArduinoLookup[key].ioName);
+                        //    }
+                        //}
                         server.clearIO("arduinoYun");
                         dataSwitch = 0;
                         break;
@@ -216,7 +217,7 @@ if (exports.enabled) {
     function serialSender(serialPort, objName, ioName, value, mode, type) {
 
         if (type === "arduinoYun") {
-            var index = ArduinoLookup[objName + ioName];
+            var index = ArduinoLookup[objName + ioName].index;
             var yunModes = ["f", "d", "p", "n"];
             if (_.includes(yunModes, mode)) {
                 serialPort.write(mode + "\n");
