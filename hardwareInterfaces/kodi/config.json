@@ -1,6 +1,6 @@
 {
   "MediaCentre": {
-    "host": "192.168.178.30",
+    "host": "tecoKodi",
     "id": "MediaCentre",
     "port": "9090",
     "colorPort": 8080,

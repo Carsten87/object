@@ -1,6 +1,6 @@
 {
   "Radio": {
-    "host": "192.168.178.48",
+    "host": "volumio",
     "id": "Radio",
     "port": "6600"
   }

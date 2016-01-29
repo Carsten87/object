@@ -159,6 +159,8 @@ if (exports.enabled) {
 
                 });
 
+            } else if (ioName == "invert") {
+                server.writeIOToServer(objName, ioName, 1 - value, "f");
             }
         }
     };
@@ -170,6 +172,7 @@ if (exports.enabled) {
             server.addIO(key, "hue", "default", "kodi");
             server.addIO(key, "saturation", "default", "kodi");
             server.addIO(key, "brightness", "default", "kodi");
+            server.addIO(key, "invert", "default", "kodi");
         }
 
         server.clearIO("kodi");
