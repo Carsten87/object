@@ -48,8 +48,8 @@ if (exports.enabled) {
      **/
     function setup() {
         server.developerOn();
-        knob1GPIO = new GPIO(3, "in", "falling");
-        knob2GPIO = new GPIO(4, "in", "falling");
+        knob1GPIO = new GPIO(4, "in", "falling");
+        knob2GPIO = new GPIO(3, "in", "falling");
         buttonGPIO = new GPIO(2, "in", "both");
         buttonGPIO.watch(function (err, value) {
             if (err) {
