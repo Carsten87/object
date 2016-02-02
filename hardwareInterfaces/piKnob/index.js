@@ -113,7 +113,7 @@ if (exports.enabled) {
      *       Clean up open file handles or resources and return quickly.
      **/
     exports.shutdown = function () {
-        if (server.getDebug()) console.log("piSwitch: shutdown()");
+        if (server.getDebug()) console.log("piKnob: shutdown()");
         teardown();
     };
 
