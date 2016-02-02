@@ -20,8 +20,9 @@ if (exports.enabled) {
         GPIO = require('onoff').Gpio;
 
     var switchState = undefined;
-    var onGPIO,
-        offGPIO;
+    var knob1GPIO,
+        knob2GPIO,
+        buttonGPIO;
 
 
     /**
@@ -29,23 +30,30 @@ if (exports.enabled) {
      **/
     function setup() {
         server.developerOn();
-        onGPIO = new GPIO(4, "in", "both");
-        offGPIO = new GPIO(3, "in", "both");
-        onGPIO.watch(function (err, value) {
+        knob1GPIO = new GPIO(2, "in", "both");
+        knob2GPIO = new GPIO(4, "in", "both");
+        buttonGPIO = new GPIO(3, "in", "both");
+        buttonGPIO.watch(function (err, value) {
             if (err) {
                 console.log("pi: ERROR receiving GPIO " + err);
-            } else if (value == 0 && switchState != 1) {
-                switchState = 1;
-                server.writeIOToServer("piSwitch", "switch", 1, "d");
+            } else {
+                console.log("Button value: " + value);
             }
         });
 
-        offGPIO.watch(function (err, value) {
+        knob1GPIO.watch(function (err, value) {
             if (err) {
                 console.log("pi: ERROR receiving GPIO " + err);
-            } else if (value == 0 && switchState != 0) {
-                switchState = 0;
-                server.writeIOToServer("piSwitch", "switch", 0, "d");
+            } else {
+                console.log("Knob1 value: " + value);
+            }
+        });
+
+        knob2GPIO.watch(function (err, value) {
+            if (err) {
+                console.log("pi: ERROR receiving GPIO " + err);
+            } else {
+                console.log("Knob2 value: " + value);
             }
         });
     }
@@ -54,8 +62,9 @@ if (exports.enabled) {
      * @desc teardown() free up any open resources
      **/
     function teardown() {
-        onGPIO.unexport();
-        offGPIO.unexport();
+        buttonGPIO.unexport();
+        knob1GPIO.unexport();
+        knob2GPIO.unexport();
     }
 
 
@@ -65,7 +74,7 @@ if (exports.enabled) {
      *       Start the event loop of your hardware interface in here. Call clearIO() after you have added all the IO points with addIO() calls.
      **/
     exports.receive = function () {
-        if (server.getDebug()) console.log("piSwitch: receive()");
+        if (server.getDebug()) console.log("piKnob: receive()");
         setup();
     };
 
@@ -79,7 +88,7 @@ if (exports.enabled) {
      * @param {type} type The type
      **/
     exports.send = function (objName, ioName, value, mode, type) {
-        if (objName == "piSwitch" && ioName == "switch") {
+        if (objName == "piKnob" && ioName == "switch") {
             if (value > 0.5) {
                 switchState = 1;
             } else {
@@ -93,9 +102,10 @@ if (exports.enabled) {
      * @note program the init so that it can be called anytime there is a change to the amount of objects.
      **/
     exports.init = function () {
-        if (server.getDebug()) console.log("piSwitch: init()");
-        server.addIO("piSwitch", "switch", "default", "piSwitch");
-        server.clearIO("piSwitch");
+        if (server.getDebug()) console.log("piKnob: init()");
+        server.addIO("piKnob", "switch", "default", "piKnob");
+        server.addIO("piKnob", "position", "default", "piKnob");
+        server.clearIO("piKnob");
     };
 
     /**
