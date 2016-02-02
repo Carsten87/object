@@ -1,15 +1,8 @@
 [
 		{
-			"id": "led1",
-			"ioName": "digital",
-			"pin": 16,
-			"direction": "out",
-			"edge": "none"
-		},
-		{
 			"id": "button1",
 			"ioName": "digital",
-			"pin": 17,
+			"pin": 3,
 			"direction": "in",
 			"edge": "both"
 		}
