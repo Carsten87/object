@@ -37,6 +37,7 @@ if (exports.enabled) {
         rotary_c = rotary_a ^ rotary_b;
         newState = rotary_a * 4 + rotary_b * 2 + rotary_c;
         delta = (newState - lastState) % 4;
+        lastState = newState;
         if (delta == 1) {
             console.log("Clockwise");
         } else if (delta == 3) {
