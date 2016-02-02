@@ -60,7 +60,7 @@ if (exports.enabled) {
     function writeGpioToServer(err, value, item, callback) {
         if (err) {
             console.log("raspberryPi: ERROR receiving GPIO data from id = '" + item.id + "' and ioName = '" + item.ioName + "'");
-            console.log(err)
+            console.log(err);
         }
 
             // only send if we don't have an error and the value has changed
