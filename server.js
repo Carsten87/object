@@ -1042,7 +1042,7 @@ function objectWebServer() {
                             var unzipper = new DecompressZip(folderD + "/" + filename);
 
                             unzipper.on('error', function (err) {
-                                if (globalVariables.debug) console.log('Caught an error');
+                                if (globalVariables.debug) console.log('Caught an error ' + err.message);
                             });
 
                             unzipper.on('extract', function (log) {
@@ -1215,7 +1215,7 @@ function objectWebServer() {
                                 var unzipper = new DecompressZip(folderD + "/" + filename);
 
                                 unzipper.on('error', function (err) {
-                                    if (globalVariables.debug) console.log('Caught an error');
+                                    if (globalVariables.debug) console.log('Caught an error ' + err.message);
                                 });
 
                                 unzipper.on('extract', function (log) {
