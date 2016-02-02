@@ -112,7 +112,7 @@ if (exports.enabled) {
         if (server.getDebug()) console.log("raspberryPi: init()");
         //close all GPIO's if any are open
         teardown();
-
+        items = {};
         rawItems.forEach(function (item) {
             var key = item.id + item.ioName; // unique item identifier
 
