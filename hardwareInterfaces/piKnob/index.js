@@ -12,7 +12,7 @@
 /**
  * Set to true to enable the hardware interface
  **/
-exports.enabled = false;
+exports.enabled = true;
 
 if (exports.enabled) {
     var fs = require('fs'),
@@ -27,8 +27,22 @@ if (exports.enabled) {
     var rotary_a = undefined;
     var rotary_b = undefined;
     var rotary_c = undefined;
+    var newState = 0;
+    var lastState = 0;
+    var delta;
 
-
+    function rotaryEvent() {
+        rotary_a = knob1GPIO.readSync();
+        rotary_b = knob2GPIO.readSync();
+        rotary_c = rotary_a ^ rotary_b;
+        newState = rotary_a * 4 + rotary_b * 2 + rotary_c;
+        delta = (newState - lastState) % 4;
+        if (delta == 1) {
+            console.log("Clockwise");
+        } else if (delta == 3) {
+            console.log("Counterclockwise");
+        }
+    }
     /**
      * @desc setup() runs once
      **/
@@ -50,6 +64,7 @@ if (exports.enabled) {
                 console.log("pi: ERROR receiving GPIO " + err);
             } else {
                 console.log("Knob1 value: " + value);
+                rotaryEvent();
             }
         });
 
@@ -58,6 +73,7 @@ if (exports.enabled) {
                 console.log("pi: ERROR receiving GPIO " + err);
             } else {
                 console.log("Knob2 value: " + value);
+                rotaryEvent();
             }
         });
     }
