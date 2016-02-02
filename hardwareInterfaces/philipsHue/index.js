@@ -268,6 +268,7 @@ if (exports.enabled) {
     };
 
     exports.send = function (objName, ioName, value, mode, type) {
+        if (server.getDebug()) console.log("Incoming: " + objName + "   " + ioName + "   " + value);
         //Write incoming data to the specified light
         if (lights.hasOwnProperty(objName)) {
             if (ioName == "switch") {

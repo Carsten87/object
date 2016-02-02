@@ -47,7 +47,7 @@ if (exports.enabled) {
             //Poll for color changes
             setInterval(function (ks) {
                 getColor(ks, server.writeIOToServer);
-            }, 200 + _.random(-50, 50), kodiServer);
+            }, 500 + _.random(-50, 50), kodiServer);
 
             kodi(kodiServer.host, kodiServer.port).then(function (connection) {
                 kodiServer.connection = connection;
@@ -68,10 +68,12 @@ if (exports.enabled) {
 
                 kodiServer.connection.Player.OnPlay(function () {
                     server.writeIOToServer(key, "status", 1, "f");
+                    server.writeIOToServer(key, "dim", 0.5, "f");
                 });
 
                 kodiServer.connection.Player.OnStop(function () {
                     server.writeIOToServer(key, "status", 0, "f");
+                    server.writeIOToServer(key, "dim", 1, "f");
                 });
 
             });
@@ -173,6 +175,7 @@ if (exports.enabled) {
             server.addIO(key, "saturation", "default", "kodi");
             server.addIO(key, "brightness", "default", "kodi");
             server.addIO(key, "invert", "default", "kodi");
+            server.addIO(key, "dim", "default", "kodi");
         }
 
         server.clearIO("kodi");
