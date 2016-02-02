@@ -24,14 +24,18 @@ if (exports.enabled) {
         knob2GPIO,
         buttonGPIO;
 
+    var rotary_a = undefined;
+    var rotary_b = undefined;
+    var rotary_c = undefined;
+
 
     /**
      * @desc setup() runs once
      **/
     function setup() {
         server.developerOn();
-        knob1GPIO = new GPIO(3, "in", "both");
-        knob2GPIO = new GPIO(4, "in", "both");
+        knob1GPIO = new GPIO(3, "in", "falling");
+        knob2GPIO = new GPIO(4, "in", "falling");
         buttonGPIO = new GPIO(2, "in", "both");
         buttonGPIO.watch(function (err, value) {
             if (err) {
