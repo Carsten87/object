@@ -49,14 +49,12 @@ if (exports.enabled) {
                 position = 1;
             server.writeIOToServer("piKnob", "position", position, "f");
             direction = CLOCKWISE;
-            console.log("Clockwise");
         } else if (delta == 3) {
             position -= step;
             if (position < 0)
                 position = 0;
             server.writeIOToServer("piKnob", "position", position, "f");
             direction = COUNTERCLOCKWISE;
-            console.log("Counterclockwise");
         } else if (delta == 2) {
             if (direction == CLOCKWISE) {
                 position += step * 2;
@@ -69,8 +67,6 @@ if (exports.enabled) {
                     position = 0;
                 server.writeIOToServer("piKnob", "position", position, "f");
             }
-
-            console.log("Two steps");
         }
     }
     /**
