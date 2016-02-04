@@ -25,12 +25,15 @@ if (exports.enabled) {
         buttonGPIO;
     var step = 0.01;
     var position = 0;
+    var CLOCKWISE = 0;
+    var COUNTERCLOCKWISE = 1;
 
     var rotary_a = undefined;
     var rotary_b = undefined;
     var rotary_c = undefined;
     var newState = 0;
     var lastState = 0;
+    var direction = undefined;
     var delta;
 
     function rotaryEvent() {
@@ -45,13 +48,29 @@ if (exports.enabled) {
             if (position > 1)
                 position = 1;
             server.writeIOToServer("piKnob", "position", position, "f");
+            direction = CLOCKWISE;
             console.log("Clockwise");
         } else if (delta == 3) {
             position -= step;
             if (position < 0)
                 position = 0;
             server.writeIOToServer("piKnob", "position", position, "f");
+            direction = COUNTERCLOCKWISE;
             console.log("Counterclockwise");
+        } else if (delta == 2) {
+            if (direction == CLOCKWISE) {
+                position += step * 2;
+                if (position > 1)
+                    position = 1;
+                server.writeIOToServer("piKnob", "position", position, "f");
+            } else if (direction == COUNTERCLOCKWISE) {
+                position -= step * 2;
+                if (position < 0)
+                    position = 0;
+                server.writeIOToServer("piKnob", "position", position, "f");
+            }
+
+            console.log("Two steps");
         }
     }
     /**
@@ -74,7 +93,6 @@ if (exports.enabled) {
             if (err) {
                 console.log("pi: ERROR receiving GPIO " + err);
             } else {
-                console.log("Knob1 value: " + value);
                 rotaryEvent();
             }
         });
@@ -83,7 +101,6 @@ if (exports.enabled) {
             if (err) {
                 console.log("pi: ERROR receiving GPIO " + err);
             } else {
-                console.log("Knob2 value: " + value);
                 rotaryEvent();
             }
         });
