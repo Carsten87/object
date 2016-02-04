@@ -34,7 +34,7 @@ if (exports.enabled) {
         onGPIO.watch(function (err, value) {
             if (err) {
                 console.log("pi: ERROR receiving GPIO " + err);
-            } else if (value == 0 && switchState != 1) {
+            } else if (value == 0) {
                 switchState = 1;
                 server.writeIOToServer("piSwitch", "switch", 1, "d");
             }
@@ -43,7 +43,7 @@ if (exports.enabled) {
         offGPIO.watch(function (err, value) {
             if (err) {
                 console.log("pi: ERROR receiving GPIO " + err);
-            } else if (value == 0 && switchState != 0) {
+            } else if (value == 0) {
                 switchState = 0;
                 server.writeIOToServer("piSwitch", "switch", 0, "d");
             }

@@ -23,6 +23,8 @@ if (exports.enabled) {
     var knob1GPIO,
         knob2GPIO,
         buttonGPIO;
+    var step = 0.01;
+    var position = 0;
 
     var rotary_a = undefined;
     var rotary_b = undefined;
@@ -39,8 +41,16 @@ if (exports.enabled) {
         delta = (newState - lastState) % 4;
         lastState = newState;
         if (delta == 1) {
+            position += step;
+            if (position > 1)
+                position = 1;
+            server.writeIOToServer("piKnob", "position", position, "f");
             console.log("Clockwise");
         } else if (delta == 3) {
+            position -= step;
+            if (position < 0)
+                position = 0;
+            server.writeIOToServer("piKnob", "position", position, "f");
             console.log("Counterclockwise");
         }
     }
@@ -109,12 +119,8 @@ if (exports.enabled) {
      * @param {type} type The type
      **/
     exports.send = function (objName, ioName, value, mode, type) {
-        if (objName == "piKnob" && ioName == "switch") {
-            if (value > 0.5) {
-                switchState = 1;
-            } else {
-                switchState = 0;
-            }
+        if (objName == "piKnob" && ioName == "position") {
+            position = value;
         }
     };
 
@@ -124,7 +130,6 @@ if (exports.enabled) {
      **/
     exports.init = function () {
         if (server.getDebug()) console.log("piKnob: init()");
-        server.addIO("piKnob", "switch", "default", "piKnob");
         server.addIO("piKnob", "position", "default", "piKnob");
         server.clearIO("piKnob");
     };
