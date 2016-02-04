@@ -15,8 +15,7 @@
 exports.enabled = true;
 
 if (exports.enabled) {
-    var fs = require('fs'),
-        server = require(__dirname + '/../../libraries/HybridObjectsHardwareInterfaces'),
+    var server = require(__dirname + '/../../libraries/HybridObjectsHardwareInterfaces'),
         GPIO = require('onoff').Gpio;
 
     var switchState = undefined;
