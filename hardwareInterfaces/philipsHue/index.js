@@ -42,12 +42,6 @@ if (exports.enabled) {
 
     var lights = JSON.parse(fs.readFileSync(__dirname + "/config.json", "utf8"));
 
-    //function Light() {
-    //    this.id;
-    //    this.host;
-    //    this.url;
-    //    this.port;
-    //}
 
     /**
      * @desc setup() runs once, adds and clears the IO points
@@ -63,6 +57,12 @@ if (exports.enabled) {
             lights[key].bri = undefined;
             lights[key].hue = undefined;
             lights[key].sat = undefined;
+            lights[key].presets = [];
+            for (var i = 0; i < 10; i++) {
+                lights[key].presets[i].hue = 1 / 10 * i;
+                lights[key].presets[i].sat = 1;
+                lights[key].presets[i].bri = 1;
+            }
         }
     }
 
@@ -162,6 +162,27 @@ if (exports.enabled) {
         //TODO check for success message from the bridge
     }
 
+    /**
+     * @desc writeBrightness() Sets the brightness of the specified light 
+     * @param {float} bri is the brightness in the range [0,1]
+ **/
+    function writeColor(light, hue, sat, bri) {
+        var options = {
+            host: light.host,
+            path: light.url + "/state",
+            port: light.port,
+            method: 'PUT',
+        };
+
+        var req = http.request(options, function () { });
+        req.on('error', function (e) {
+            console.log('writeColor HTTP error: ' + e.message);
+        });
+
+        req.write('{"transitiontime":2, "bri":' + _.floor(bri * 253 + 1) + ', "hue":' + _.floor(hue * 65535) + ', "sat":' + _.floor(sat * 254) + '}');
+
+        req.end();
+    }
 
     /**
          * @desc writeBrightness() Sets the brightness of the specified light 
@@ -180,7 +201,7 @@ if (exports.enabled) {
             console.log('writeBrightness HTTP error: ' + e.message);
         });
 
-        req.write('{"bri":' + _.floor(bri * 253 + 1) + '}');
+        req.write('{"transitiontime":2, "bri":' + _.floor(bri * 253 + 1) + '}');
 
         req.end();
     }
@@ -202,7 +223,7 @@ if (exports.enabled) {
         req.on('error', function (e) {
             console.log('writeSaturation HTTP error: ' + e.message);
         });
-        req.write('{"sat":' + _.floor(sat * 254) + '}');
+        req.write('{"transitiontime":2, "sat":' + _.floor(sat * 254) + '}');
         req.end();
     }
 
@@ -223,7 +244,7 @@ if (exports.enabled) {
         req.on('error', function (e) {
             console.log('writeHue HTTP error: ' + e.message);
         });
-        req.write('{"hue":' + _.floor(hue * 65535) + '}');
+        req.write('{"transitiontime":2, "hue":' + _.floor(hue * 65535) + '}');
         req.end();
     }
 
@@ -279,6 +300,14 @@ if (exports.enabled) {
                 writeSaturation(lights[objName], value);
             } else if (ioName == "hue") {
                 writeHue(lights[objName], value);
+            } else if (ioName == "presets") {
+                var index = _.floor(value * 9);
+                writeColor(lights[objName], lights[objName].presets[index].hue, lights[objName].presets[index].sat, lights[objName].presets[index].bri);
+            } else if (ioName == "presetChange") {
+                var obj = JSON.parse(value);
+                lights[objName].presets[obj.index].bri = obj.bri;
+                lights[objName].presets[obj.index].hue = obj.hue;
+                lights[objName].presets[obj.index].sat = obj.sat;
             }
         }
     };
@@ -289,6 +318,8 @@ if (exports.enabled) {
             server.addIO(key, "brightness", "default", "philipsHue");
             server.addIO(key, "hue", "default", "philipsHue");
             server.addIO(key, "saturation", "default", "philipsHue");
+            server.addIO(key, "presets", "default", "philipsHue");
+            server.addIO(key, "presetChange", "invisible", "philipsHue");
         }
         server.clearIO("philipsHue");
     };
