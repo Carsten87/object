@@ -41,6 +41,11 @@ if (exports.enabled) {
 
 
     var lights = JSON.parse(fs.readFileSync(__dirname + "/config.json", "utf8"));
+    function Color(hue, bri, sat) {
+        this.hue = hue;
+        this.bri = bri;
+        this.sat = sat;
+    }
 
 
     /**
@@ -59,9 +64,10 @@ if (exports.enabled) {
             lights[key].sat = undefined;
             lights[key].presets = [];
             for (var i = 0; i < 10; i++) {
-                lights[key].presets[i].hue = 1 / 10 * i;
-                lights[key].presets[i].sat = 1;
-                lights[key].presets[i].bri = 1;
+                lights[key].presets[i] = new Color(1 / 10 * i, 1, 1);
+                //lights[key].presets[i].hue = 1 / 10 * i;
+                //lights[key].presets[i].sat = 1;
+                //lights[key].presets[i].bri = 1;
             }
         }
     }
