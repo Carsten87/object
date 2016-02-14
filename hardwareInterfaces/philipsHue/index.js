@@ -29,7 +29,7 @@
  * TODO: Add some more functionality, i.e. change color or whatever the philips Hue API offers
  */
 //Enable this hardware interface
-exports.enabled = true;
+exports.enabled = false;
 
 if (exports.enabled) {
 
@@ -50,11 +50,9 @@ if (exports.enabled) {
 
     io.on('connection', function (socket) {
         socket.on('requestPresets', function (objName) {
-            console.log('requestPresets: ' + objName);
             socket.emit('presets', JSON.stringify(lights[objName].presets));
         });
         socket.on('presetChange', function (data) {
-            console.log('presetChange: ' + data);
             var obj = JSON.parse(data);
             lights[obj.objName].presets[obj.index].bri = obj.bri;
             lights[obj.objName].presets[obj.index].hue = obj.hue;
