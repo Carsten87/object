@@ -29,7 +29,7 @@
  * TODO: Add some more functionality, i.e. change color or whatever the philips Hue API offers
  */
 //Enable this hardware interface
-exports.enabled = false;
+exports.enabled = true;
 
 if (exports.enabled) {
 
@@ -37,6 +37,7 @@ if (exports.enabled) {
     var fs = require('fs');
     var http = require('http');
     var _ = require('lodash');
+    var io = require('socket.io')(8081);
     var server = require(__dirname + '/../../libraries/HybridObjectsHardwareInterfaces');
 
 
@@ -46,6 +47,20 @@ if (exports.enabled) {
         this.bri = bri;
         this.sat = sat;
     }
+
+    io.on('connection', function (socket) {
+        socket.on('requestPresets', function (objName) {
+            console.log('requestPresets: ' + objName);
+            socket.emit('presets', JSON.stringify(lights[objName].presets));
+        });
+        socket.on('presetChange', function (data) {
+            console.log('presetChange: ' + data);
+            var obj = JSON.parse(data);
+            lights[obj.objName].presets[obj.index].bri = obj.bri;
+            lights[obj.objName].presets[obj.index].hue = obj.hue;
+            lights[obj.objName].presets[obj.index].sat = obj.sat;
+        });
+    });
 
 
     /**
@@ -63,11 +78,8 @@ if (exports.enabled) {
             lights[key].hue = undefined;
             lights[key].sat = undefined;
             lights[key].presets = [];
-            for (var i = 0; i < 10; i++) {
-                lights[key].presets[i] = new Color(1 / 10 * i, 1, 1);
-                //lights[key].presets[i].hue = 1 / 10 * i;
-                //lights[key].presets[i].sat = 1;
-                //lights[key].presets[i].bri = 1;
+            for (var i = 0; i < 50; i++) {
+                lights[key].presets[i] = new Color(1 / 49 * i, 1, 1);
             }
         }
     }
@@ -309,12 +321,7 @@ if (exports.enabled) {
             } else if (ioName == "presets") {
                 var index = _.floor(value * 9);
                 writeColor(lights[objName], lights[objName].presets[index].hue, lights[objName].presets[index].sat, lights[objName].presets[index].bri);
-            } else if (ioName == "presetChange") {
-                var obj = JSON.parse(value);
-                lights[objName].presets[obj.index].bri = obj.bri;
-                lights[objName].presets[obj.index].hue = obj.hue;
-                lights[objName].presets[obj.index].sat = obj.sat;
-            }
+            } 
         }
     };
 
@@ -325,7 +332,6 @@ if (exports.enabled) {
             server.addIO(key, "hue", "default", "philipsHue");
             server.addIO(key, "saturation", "default", "philipsHue");
             server.addIO(key, "presets", "default", "philipsHue");
-            server.addIO(key, "presetChange", "invisible", "philipsHue");
         }
         server.clearIO("philipsHue");
     };
