@@ -290,7 +290,7 @@ if (exports.enabled) {
         var state = false;
         setInterval(function (l) {
             if (server.getDebug()) console.log("startGeneratorOnOff");
-            server.writeIOToServer(l.id, "generatorOnOff", state, "b");
+            server.writeIOToServer(l.id, "generatorOnOff", state, "d");
             if (state) {
                 state = false;
             } else {
@@ -317,8 +317,9 @@ if (exports.enabled) {
             } else if (ioName == "hue") {
                 writeHue(lights[objName], value);
             } else if (ioName == "presets") {
-                var index = _.floor(value * 9);
+                var index = _.floor(value * 49);
                 writeColor(lights[objName], lights[objName].presets[index].hue, lights[objName].presets[index].sat, lights[objName].presets[index].bri);
+                server.writeIOToServer(objName, ioName, value, "f");
             } 
         }
     };

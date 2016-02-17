@@ -161,9 +161,10 @@ if (exports.enabled) {
 
                 });
 
-            } else if (ioName == "invert") {
-                server.writeIOToServer(objName, ioName, 1 - value, "f");
             }
+            //else if (ioName == "invert") {
+            //    server.writeIOToServer(objName, ioName, 1 - value, "f");
+            //}
         }
     };
 
@@ -171,11 +172,11 @@ if (exports.enabled) {
         for (var key in kodiServers) {
             server.addIO(key, "volume", "default", "kodi");
             server.addIO(key, "status", "default", "kodi");
-            server.addIO(key, "hue", "default", "kodi");
-            server.addIO(key, "saturation", "default", "kodi");
-            server.addIO(key, "brightness", "default", "kodi");
-            server.addIO(key, "invert", "default", "kodi");
-            server.addIO(key, "dim", "default", "kodi");
+            server.addIO(key, "hue", "output", "kodi");
+            server.addIO(key, "saturation", "output", "kodi");
+            server.addIO(key, "brightness", "output", "kodi");
+            //server.addIO(key, "invert", "default", "kodi");
+            server.addIO(key, "dim", "output", "kodi");
         }
 
         server.clearIO("kodi");
