@@ -48,17 +48,23 @@ if (exports.enabled) {
         this.sat = sat;
     }
 
-    io.on('connection', function (socket) {
-        socket.on('requestPresets', function (objName) {
-            socket.emit('presets', JSON.stringify(lights[objName].presets));
-        });
-        socket.on('presetChange', function (data) {
-            var obj = JSON.parse(data);
-            lights[obj.objName].presets[obj.index].bri = obj.bri;
-            lights[obj.objName].presets[obj.index].hue = obj.hue;
-            lights[obj.objName].presets[obj.index].sat = obj.sat;
-        });
-    });
+    //io.on('connection', function (socket) {
+    //    socket.on('requestPresets', function (objName) {
+    //        if (lights.hasOwnProperty(objName)) {
+    //            socket.emit('presets', JSON.stringify(lights[objName].presets));
+    //        } else {
+    //            console.log("requestPresets error: Unknown object: " + objName);
+    //        }
+    //    });
+    //    socket.on('presetChange', function (data) {
+    //        var obj = JSON.parse(data);
+    //        if (lights.hasOwnProperty(obj.objName)) {
+    //            lights[obj.objName].presets[obj.index].bri = obj.bri;
+    //            lights[obj.objName].presets[obj.index].hue = obj.hue;
+    //            lights[obj.objName].presets[obj.index].sat = obj.sat;
+    //        }
+    //    });
+    //});
 
 
     /**
@@ -66,8 +72,6 @@ if (exports.enabled) {
      **/
     function setup() {
         server.developerOn();
-        //load the config file
-        //lights = JSON.parse(fs.readFileSync(__dirname + "/config.json", "utf8"));
 
         if (server.getDebug()) console.log("setup philipsHue");
         for (var key in lights) {
@@ -75,10 +79,10 @@ if (exports.enabled) {
             lights[key].bri = undefined;
             lights[key].hue = undefined;
             lights[key].sat = undefined;
-            lights[key].presets = [];
-            for (var i = 0; i < 50; i++) {
-                lights[key].presets[i] = new Color(1 / 49 * i, 1, 1);
-            }
+            //lights[key].presets = [];
+            //for (var i = 0; i < 50; i++) {
+            //    lights[key].presets[i] = new Color(1 / 49 * i, 1, 1);
+            //}
         }
     }
 
@@ -111,9 +115,9 @@ if (exports.enabled) {
                 if (state.on != light.switch) {
                     light.switch = state.on;
                     if (state.on) {
-                        callback(light.id, "switch", 1, "d");
+                        callback(light.id, "onOff", 1, "d");
                     } else {
-                        callback(light.id, "switch", 0, "d");
+                        callback(light.id, "onOff", 0, "d");
                     }
 
                 }
@@ -282,23 +286,6 @@ if (exports.enabled) {
 
     }
 
-    /**
-     * @desc startGeneratorOnOff() starts a generator which periodically changes the values of the "generatorOnOff" IO point from true to false and vice versa
-     * @param {Object} light the light to which the specifed IO point belongs
-     **/
-    function startGeneratorOnOff(light) {
-        var state = false;
-        setInterval(function (l) {
-            if (server.getDebug()) console.log("startGeneratorOnOff");
-            server.writeIOToServer(l.id, "generatorOnOff", state, "d");
-            if (state) {
-                state = false;
-            } else {
-                state = true;
-            }
-        }, 5000 + _.random(-250, 250), light);
-    }
-
 
     exports.receive = function () {
         philipsHueServer();
@@ -308,29 +295,67 @@ if (exports.enabled) {
         if (server.getDebug()) console.log("Incoming: " + objName + "   " + ioName + "   " + value);
         //Write incoming data to the specified light
         if (lights.hasOwnProperty(objName)) {
-            if (ioName == "switch") {
-                writeSwitchState(lights[objName], value);
-            } else if (ioName == "brightness") {
-                writeBrightness(lights[objName], value);
-            } else if (ioName == "saturation") {
-                writeSaturation(lights[objName], value);
-            } else if (ioName == "hue") {
-                writeHue(lights[objName], value);
-            } else if (ioName == "presets") {
-                var index = _.floor(value * 49);
-                writeColor(lights[objName], lights[objName].presets[index].hue, lights[objName].presets[index].sat, lights[objName].presets[index].bri);
-                server.writeIOToServer(objName, ioName, value, "f");
-            } 
+            var light = lights[objName];
+            if (ioName == "onOff" && (mode == "f" || mode == "d")) {
+                writeSwitchState(light, value);
+            } else if (ioName == "brightness" && (mode == "f" || mode == "d")) {
+                writeBrightness(light, value);
+            } else if (ioName == "brightness" && mode == "p") {
+                var bri = ((light.bri - 1) / 253) + value;
+                if (bri > 1) {
+                    bri = 1;
+                }
+                writeBrightness(light, bri);
+            } else if (ioName == "brightness" && mode == "n") {
+                var bri = ((light.bri - 1) / 253) - value;
+                if (bri < 0) {
+                    bri = 0;
+                }
+                writeBrightness(light, bri);
+            } else if (ioName == "saturation" && (mode == "f" || mode == "d")) {
+                writeSaturation(light, value);
+            } else if (ioName == "saturation" && mode == "p") {
+                var sat = light.sat / 254 + value;
+                if (sat > 1) {
+                    sat = 1;
+                }
+                writeSaturation(light, sat);
+            } else if (ioName == "saturation" && mode == "n") {
+                var sat = light.sat / 254 - value;
+                if (sat < 0) {
+                    sat = 0;
+                }
+                writeSaturation(light, sat);
+            } else if (ioName == "hue" && (mode == "f" || mode == "d")) {
+                writeHue(light, value);
+            } else if (ioName == "hue" && mode == "p") {
+                var hue = light.hue / 65535 + value;
+                if (hue > 1) {
+                    hue = 1;
+                }
+                writeHue(light, hue);
+            } else if (ioName == "hue" && mode == "n") {
+                var hue = light.hue / 65535 - value;
+                if (hue < 0) {
+                    hue = 0;
+                }
+                writeHue(light, hue);
+            }
+            //else if (ioName == "presets" && (mode == "f" || mode == "d")) {
+            //    var index = _.floor(value * 49);
+            //    writeColor(light, light.presets[index].hue, light.presets[index].sat, light.presets[index].bri);
+            //    server.writeIOToServer(objName, ioName, value, "f");
+            //}
         }
     };
 
     exports.init = function () {
         for (var key in lights) {
-            server.addIO(key, "switch", "default", "philipsHue");
+            server.addIO(key, "onOff", "default", "philipsHue");
             server.addIO(key, "brightness", "default", "philipsHue");
             server.addIO(key, "hue", "default", "philipsHue");
             server.addIO(key, "saturation", "default", "philipsHue");
-            server.addIO(key, "presets", "default", "philipsHue");
+            //server.addIO(key, "presets", "default", "philipsHue");
         }
         server.clearIO("philipsHue");
     };

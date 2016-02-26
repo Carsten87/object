@@ -43,6 +43,7 @@ if (exports.enabled) {
             kodiServer.bri = undefined;
             kodiServer.hue = undefined;
             kodiServer.sat = undefined;
+            kodiServer.volume = 0;
 
             //Poll for color changes
             setInterval(function (ks) {
@@ -57,22 +58,23 @@ if (exports.enabled) {
                 kodiServer.connection.Application.OnVolumeChanged(function () {
                     var volume = kodiServer.connection.Application.GetProperties({ properties: ['volume'] });
                     volume.then(function (data) {
+                        kodiServer.volume = data.volume / 100;
                         server.writeIOToServer(key, "volume", data.volume / 100, "f");
                     });
 
                 });
 
                 kodiServer.connection.Player.OnPause(function () {
-                    server.writeIOToServer(key, "status", 0.5, "f");
+                    server.writeIOToServer(key, "playStop", 0.5, "f");
                 });
 
                 kodiServer.connection.Player.OnPlay(function () {
-                    server.writeIOToServer(key, "status", 1, "f");
+                    server.writeIOToServer(key, "playStop", 1, "f");
                     server.writeIOToServer(key, "dim", 0.5, "f");
                 });
 
                 kodiServer.connection.Player.OnStop(function () {
-                    server.writeIOToServer(key, "status", 0, "f");
+                    server.writeIOToServer(key, "playStop", 0, "f");
                     server.writeIOToServer(key, "dim", 1, "f");
                 });
 
@@ -104,23 +106,26 @@ if (exports.enabled) {
             });
 
             response.on('end', function () {
-                //TODO add some error handling
-                color = JSON.parse(str);
+                try{
+                    color = JSON.parse(str);
                 
 
-                if (color.h != kodiServer.hue) {
-                    kodiServer.hue = color.h; // hue is a value between 0 and 65535
-                    callback(kodiServer.id, "hue", color.h, "f"); // map hue to [0,1]
-                }
+                    if (color.h != kodiServer.hue) {
+                        kodiServer.hue = color.h; // hue is a value between 0 and 65535
+                        callback(kodiServer.id, "hue", color.h, "f"); // map hue to [0,1]
+                    }
 
-                if (color.v != kodiServer.bri) {
-                    kodiServer.bri = color.v; // brightness is a value between 1 and 254
-                    callback(kodiServer.id, "brightness", color.v, "f");
-                }
+                    if (color.v != kodiServer.bri) {
+                        kodiServer.bri = color.v; // brightness is a value between 1 and 254
+                        callback(kodiServer.id, "brightness", color.v, "f");
+                    }
 
-                if (color.s != kodiServer.sat) {
-                    kodiServer.sat = color.s;
-                    callback(kodiServer.id, "saturation", color.s, "f");
+                    if (color.s != kodiServer.sat) {
+                        kodiServer.sat = color.s;
+                        callback(kodiServer.id, "saturation", color.s, "f");
+                    }
+                }catch (error){
+                    console.log("KODI getColor Error: " + error.message);
                 }
 
             });
@@ -144,38 +149,47 @@ if (exports.enabled) {
 
     exports.send = function (objName, ioName, value, mode, type) {
         if (kodiServers.hasOwnProperty(objName) && !_.isNull(kodiServers[objName].connection)) {
-            if (ioName == "volume") {
-                kodiServers[objName].connection.Application.SetVolume(_.floor(value * 100));
-            } else if (ioName == "status") {
+            var kodiServer = kodiServers[objName];
+            if (ioName == "volume" && (mode =="f" || mode == "d")) {
+                kodiServer.connection.Application.SetVolume(_.floor(value * 100));
+            } else if (ioName == "volume" && mode == "p") {
+                kodiServer.volume += value;
+                if (kodiServer.volume > 1) {
+                    kodiServer.volume = 1;
+                }
+                kodiServer.connection.Application.SetVolume(_.floor(value * 100));
+            } else if (ioName == "volume" && mode == "n") {
+                kodiServer.volume -= value;
+                if (kodiServer.volume < 0) {
+                    kodiServer.volume = 0;
+                }
+                kodiServer.connection.Application.SetVolume(_.floor(value * 100));
+            } else if (ioName == "playStop" && (mode == "f" || mode == "d")) {
                 //play, pause, stop all of the currently active players
-                kodiServers[objName].connection.Player.GetActivePlayers().then(function (data) {
+                kodiServer.connection.Player.GetActivePlayers().then(function (data) {
                     for (var i = 0; i < data.length; i++) {
                         if (value < 0.33) {
-                            kodiServers[objName].connection.Player.Stop({ playerid: data[i].playerid });
+                            kodiServer.connection.Player.Stop({ playerid: data[i].playerid });
                         } else if (value < 0.66) {
-                            kodiServers[objName].connection.Player.PlayPause({ playerid: data[i].playerid, play: false });
+                            kodiServer.connection.Player.PlayPause({ playerid: data[i].playerid, play: false });
                         } else {
-                            kodiServers[objName].connection.Player.PlayPause({ playerid: data[i].playerid, play: true });
+                            kodiServer.connection.Player.PlayPause({ playerid: data[i].playerid, play: true });
                         }
                     }
 
                 });
 
             }
-            //else if (ioName == "invert") {
-            //    server.writeIOToServer(objName, ioName, 1 - value, "f");
-            //}
         }
     };
 
     exports.init = function () {
         for (var key in kodiServers) {
             server.addIO(key, "volume", "default", "kodi");
-            server.addIO(key, "status", "default", "kodi");
+            server.addIO(key, "playStop", "default", "kodi");
             server.addIO(key, "hue", "output", "kodi");
             server.addIO(key, "saturation", "output", "kodi");
             server.addIO(key, "brightness", "output", "kodi");
-            //server.addIO(key, "invert", "default", "kodi");
             server.addIO(key, "dim", "output", "kodi");
         }
 

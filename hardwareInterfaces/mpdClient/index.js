@@ -28,6 +28,7 @@
  *    song: 0
  *    songid: 1
  *
+ * TODO: Try to reconnect on connection loss
  */
 //Enable this hardware interface
 exports.enabled = false;
@@ -51,6 +52,8 @@ if (exports.enabled) {
         for (var key in mpdServers) {
             var mpdServer = mpdServers[key];
             mpdServer.ready = false;
+            mpdServer.volume = 0;
+            mpdServer.status = 0;
 
             mpdServer.client = mpd.connect({ port: mpdServer.port, host: mpdServer.host });
 
@@ -70,6 +73,7 @@ if (exports.enabled) {
                     if (err) console.log("Error: " + err);
                     else {
                         var status = mpd.parseKeyValueMessage(msg);
+                        mpdServer.volume = status.volume / 100;
                         server.writeIOToServer(key, "volume", status.volume / 100, "f");
                     }
 
@@ -85,11 +89,14 @@ if (exports.enabled) {
                     else {
                         var status = mpd.parseKeyValueMessage(msg);
                         if (status.state == "stop") {
-                            server.writeIOToServer(key, "status", 0, "f");
+                            mpdServer.status = 0;
+                            server.writeIOToServer(key, "playStop", 0, "f");
                         } else if (status.state == "play") {
-                            server.writeIOToServer(key, "status", 1, "f");
+                            mpdServer.status = 1;
+                            server.writeIOToServer(key, "playStop", 1, "f");
                         } else if (status.state == "pause") {
-                            server.writeIOToServer(key, "status", 0.5, "f");
+                            mpdServer.status = 0.5;
+                            server.writeIOToServer(key, "playStop", 0.5, "f");
                         }
                     }
 
@@ -108,26 +115,45 @@ if (exports.enabled) {
     exports.send = function (objName, ioName, value, mode, type) {
         if (server.getDebug()) console.log("Incoming: " + objName + "   " + ioName + "   " + value);
         if (mpdServers.hasOwnProperty(objName)) {
-            if (ioName == "volume") {
-                mpdServers[objName].client.sendCommand("setvol " + _.floor(value * 100), function (err, msg) {
+            var mpdServer = mpdServers[objName];
+            if (ioName == "volume" && mode == "f") {
+                mpdServer.client.sendCommand("setvol " + _.floor(value * 100), function (err, msg) {
                     if (err) console.log("Error executing mpd command: " + err);
                 });
-            } else if (ioName == "status") {
+            } else if (ioName == "volume" && mode == "p") {
+                mpdServer.volume += value;
+                if (mpdServer.volume > 1) {
+                    mpdServer.volume = 1;
+                }
+                mpdServers[objName].client.sendCommand("setvol " + _.floor(mpdServer.volume * 100), function (err, msg) {
+                    if (err) console.log("Error executing mpd command: " + err);
+                });
+
+            } else if (ioName == "volume" && mode == "n") {
+                mpdServer.volume -= value;
+                
+                if (mpdServer.volume < 0) {
+                    mpdServer.volume = 0;
+                }
+                mpdServer.client.sendCommand("setvol " + _.floor(mpdServer.volume * 100), function (err, msg) {
+                    if (err) console.log("Error executing mpd command: " + err);
+                });
+            } else if (ioName == "playStop" && (mode == "f" || mode == "d")) {
                 if (value < 0.33) {
-                    if (mpdServers[objName].ready) {
-                        mpdServers[objName].client.sendCommand(cmd("stop", []), function (err, msg) {
+                    if (mpdServer.ready) {
+                        mpdServer.client.sendCommand(cmd("stop", []), function (err, msg) {
                             if (err) console.log("Error executing mpd command: " + err);
                         });
                     }
                 } else if (value < 0.66) {
-                    if (mpdServers[objName].ready) {
-                        mpdServers[objName].client.sendCommand(cmd("pause", []), function (err, msg) {
+                    if (mpdServer.ready) {
+                        mpdServer.client.sendCommand(cmd("pause", []), function (err, msg) {
                             if (err) console.log("Error executing mpd command: " + err);
                         });
                     }
                 } else {
-                    if (mpdServers[objName].ready) {
-                        mpdServers[objName].client.sendCommand(cmd("play", []), function (err, msg) {
+                    if (mpdServer.ready) {
+                        mpdServer.client.sendCommand(cmd("play", []), function (err, msg) {
                             if (err) console.log("Error executing mpd command: " + err);
                         });
                     }
@@ -142,7 +168,7 @@ if (exports.enabled) {
         if (server.getDebug()) console.log("mpd init()");
         for (var key in mpdServers) {
             server.addIO(key, "volume", "default", "mpdClient");
-            server.addIO(key, "status", "default", "mpdClient");
+            server.addIO(key, "playStop", "default", "mpdClient");
         }
         server.clearIO("mpdClient");
     };

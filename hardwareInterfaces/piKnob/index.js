@@ -23,7 +23,6 @@ if (exports.enabled) {
         knob2GPIO,
         buttonGPIO;
     var step = 0.01;
-    var position = 0;
     var CLOCKWISE = 0;
     var COUNTERCLOCKWISE = 1;
 
@@ -43,28 +42,16 @@ if (exports.enabled) {
         delta = (newState - lastState) % 4;
         lastState = newState;
         if (delta == 1) {
-            position += step;
-            if (position > 1)
-                position = 1;
-            server.writeIOToServer("piKnob", "position", position, "f");
+            server.writeIOToServer("piKnob", "value", step, "p");
             direction = CLOCKWISE;
         } else if (delta == 3) {
-            position -= step;
-            if (position < 0)
-                position = 0;
-            server.writeIOToServer("piKnob", "position", position, "f");
+            server.writeIOToServer("piKnob", "value", step, "n");
             direction = COUNTERCLOCKWISE;
         } else if (delta == 2) {
             if (direction == CLOCKWISE) {
-                position += step * 2;
-                if (position > 1)
-                    position = 1;
-                server.writeIOToServer("piKnob", "position", position, "f");
+                server.writeIOToServer("piKnob", "value", step  * 2, "p");
             } else if (direction == COUNTERCLOCKWISE) {
-                position -= step * 2;
-                if (position < 0)
-                    position = 0;
-                server.writeIOToServer("piKnob", "position", position, "f");
+                server.writeIOToServer("piKnob", "value", step * 2, "n");
             }
         }
     }
@@ -131,8 +118,8 @@ if (exports.enabled) {
      * @param {type} type The type
      **/
     exports.send = function (objName, ioName, value, mode, type) {
-        if (objName == "piKnob" && ioName == "position") {
-            position = value;
+        if (objName == "piKnob" && ioName == "value") {
+            
         }
     };
 
@@ -142,7 +129,7 @@ if (exports.enabled) {
      **/
     exports.init = function () {
         if (server.getDebug()) console.log("piKnob: init()");
-        server.addIO("piKnob", "position", "default", "piKnob");
+        server.addIO("piKnob", "value", "default", "piKnob");
         server.clearIO("piKnob");
     };
 

@@ -36,7 +36,7 @@ if (exports.enabled) {
                 console.log("pi: ERROR receiving GPIO " + err);
             } else if (value == 0) {
                 switchState = 1;
-                server.writeIOToServer("piSwitch", "switch", 1, "d");
+                server.writeIOToServer("piSwitch", "onOff", 1, "d");
             }
         });
 
@@ -45,7 +45,7 @@ if (exports.enabled) {
                 console.log("pi: ERROR receiving GPIO " + err);
             } else if (value == 0) {
                 switchState = 0;
-                server.writeIOToServer("piSwitch", "switch", 0, "d");
+                server.writeIOToServer("piSwitch", "onOff", 0, "d");
             }
         });
     }
@@ -79,7 +79,7 @@ if (exports.enabled) {
      * @param {type} type The type
      **/
     exports.send = function (objName, ioName, value, mode, type) {
-        if (objName == "piSwitch" && ioName == "switch") {
+        if (objName == "piSwitch" && ioName == "onOff") {
             if (value > 0.5) {
                 switchState = 1;
             } else {
@@ -94,7 +94,7 @@ if (exports.enabled) {
      **/
     exports.init = function () {
         if (server.getDebug()) console.log("piSwitch: init()");
-        server.addIO("piSwitch", "switch", "default", "piSwitch");
+        server.addIO("piSwitch", "onOff", "default", "piSwitch");
         server.clearIO("piSwitch");
     };
 
