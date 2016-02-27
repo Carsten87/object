@@ -636,7 +636,8 @@ function objectWebServer() {
 
         if (objectExp.hasOwnProperty(req.params[0])) {
             objectExp[req.params[0]].objectLinks[req.params[1]] = req.body;
-
+            //console.log("Add link: " + req.params[0] + "   " + req.params[1]);
+            //console.log("Request body: " + JSON.stringify(req.body));
             // call an action that asks all devices to reload their links, once the links are changed.
             actionSender(JSON.stringify({ reloadLink: { id: req.params[0], ip: objectExp[req.params[0]].ip } }));
             updateStatus = "added";
@@ -644,6 +645,7 @@ function objectWebServer() {
             // check if there are new connections associated with the new link.
             socketUpdater();
 
+            objectEngine(req.body["ObjectA"], req.body["locationInA"], objectExp, pluginModules);
             // write the object state to the permanent storage.
             HybridObjectsUtilities.writeObjectToFile(objectExp, req.params[0], __dirname);
             res.send(updateStatus);

@@ -31,7 +31,7 @@
  * TODO: Try to reconnect on connection loss
  */
 //Enable this hardware interface
-exports.enabled = false;
+exports.enabled = true;
 
 if (exports.enabled) {
     var fs = require('fs');
@@ -65,6 +65,27 @@ if (exports.enabled) {
             //Create listeners for mpd events
             mpdServer.client.on('ready', function () {
                 mpdServer.ready = true;
+                // Get initial system state
+                mpdServer.client.sendCommand(cmd("status", []), function (err, msg) {
+                    if (err) console.log("Error: " + err);
+                    else {
+                        var status = mpd.parseKeyValueMessage(msg);
+                        mpdServer.volume = status.volume / 100;
+                        server.writeIOToServer(key, "volume", status.volume / 100, "f");
+
+                        if (status.state == "stop") {
+                            mpdServer.status = 0;
+                            server.writeIOToServer(key, "playStop", 0, "f");
+                        } else if (status.state == "play") {
+                            mpdServer.status = 1;
+                            server.writeIOToServer(key, "playStop", 1, "f");
+                        } else if (status.state == "pause") {
+                            mpdServer.status = 0.5;
+                            server.writeIOToServer(key, "playStop", 0.5, "f");
+                        }
+                    }
+
+                });
             });
 
             //volume has changed

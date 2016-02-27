@@ -29,7 +29,7 @@
  * TODO: Add some more functionality, i.e. change color or whatever the philips Hue API offers
  */
 //Enable this hardware interface
-exports.enabled = false;
+exports.enabled = true;
 
 if (exports.enabled) {
 
@@ -222,8 +222,8 @@ if (exports.enabled) {
         });
 
         req.write('{"transitiontime":2, "bri":' + _.floor(bri * 253 + 1) + '}');
-
         req.end();
+        light.bri = _.floor(bri * 253 + 1);
     }
 
 
@@ -245,6 +245,7 @@ if (exports.enabled) {
         });
         req.write('{"transitiontime":2, "sat":' + _.floor(sat * 254) + '}');
         req.end();
+        light.sat = _.floor(sat * 254);
     }
 
 
@@ -266,6 +267,7 @@ if (exports.enabled) {
         });
         req.write('{"transitiontime":2, "hue":' + _.floor(hue * 65535) + '}');
         req.end();
+        light.hue = _.floor(hue * 65535);
     }
 
     /**
@@ -341,11 +343,6 @@ if (exports.enabled) {
                 }
                 writeHue(light, hue);
             }
-            //else if (ioName == "presets" && (mode == "f" || mode == "d")) {
-            //    var index = _.floor(value * 49);
-            //    writeColor(light, light.presets[index].hue, light.presets[index].sat, light.presets[index].bri);
-            //    server.writeIOToServer(objName, ioName, value, "f");
-            //}
         }
     };
 
@@ -355,7 +352,6 @@ if (exports.enabled) {
             server.addIO(key, "brightness", "default", "philipsHue");
             server.addIO(key, "hue", "default", "philipsHue");
             server.addIO(key, "saturation", "default", "philipsHue");
-            //server.addIO(key, "presets", "default", "philipsHue");
         }
         server.clearIO("philipsHue");
     };
