@@ -31,7 +31,7 @@
  * TODO: Try to reconnect on connection loss
  */
 //Enable this hardware interface
-exports.enabled = false;
+exports.enabled = true;
 
 if (exports.enabled) {
     var fs = require('fs');
@@ -83,6 +83,8 @@ if (exports.enabled) {
                             mpdServer.status = 0.5;
                             server.writeIOToServer(key, "playStop", 0.5, "f");
                         }
+
+                        mpdServer.playlistPosition = status.song / 100;
                     }
 
                 });
@@ -119,6 +121,12 @@ if (exports.enabled) {
                             mpdServer.status = 0.5;
                             server.writeIOToServer(key, "playStop", 0.5, "f");
                         }
+
+                        if (mpdServer.playlistPosition != status.song / 100) {
+                            console.log("Playlist Position changed: " + status.song);
+                            mpdServer.playlistPosition = status.song / 100;
+                            server.writeIOToServer(key, "playlistPosition", mpdServer.playlistPosition, "f");
+                        }
                     }
 
                 });
@@ -152,7 +160,7 @@ if (exports.enabled) {
 
             } else if (ioName == "volume" && mode == "n") {
                 mpdServer.volume -= value;
-                
+
                 if (mpdServer.volume < 0) {
                     mpdServer.volume = 0;
                 }
@@ -179,20 +187,53 @@ if (exports.enabled) {
                         });
                     }
                 }
+            } else if (ioName == "playlistPosition" && mode == "p") {
+                mpdServer.playlistPosition += value;
+                if (mpdServer.playlistPosition > 0.04) {
+                    mpdServer.playlistPosition = 0.04;
+                }
+                if (mpdServer.ready) {
+                    mpdServer.client.sendCommand("play " + _.floor(mpdServer.playlistPosition * 100), function (err, msg) {
+                        if (err) console.log("Error executing mpd command: " + err);
+                    });
+                }
+            } else if (ioName == "playlistPosition" && mode == "n") {
+                mpdServer.playlistPosition -= value;
+                if (mpdServer.playlistPosition < 0) {
+                    mpdServer.playlistPosition = 0;
+                }
+                if (mpdServer.ready) {
+                    mpdServer.client.sendCommand("play " + _.floor(mpdServer.playlistPosition * 100), function (err, msg) {
+                        if (err) console.log("Error executing mpd command: " + err);
+                    });
+                }
+            } else if (ioName == "playlistPosition" && mode == "f") {
+                mpdServer.playlistPosition = value;
+                if (mpdServer.playlistPosition < 0) {
+                    mpdServer.playlistPosition = 0;
+                }
+
+                if (mpdServer.playlistPosition > 0.04) {
+                    mpdServer.playlistPosition = 0.04;
+                }
+                if (mpdServer.ready) {
+                    mpdServer.client.sendCommand("play " + _.floor(mpdServer.playlistPosition * 100), function (err, msg) {
+                        if (err) console.log("Error executing mpd command: " + err);
+                    });
+                }
             }
-
         }
+        };
 
-    };
-
-    exports.init = function () {
-        if (server.getDebug()) console.log("mpd init()");
-        for (var key in mpdServers) {
-            server.addIO(key, "volume", "default", "mpdClient");
-            server.addIO(key, "playStop", "default", "mpdClient");
-        }
-        server.clearIO("mpdClient");
-    };
-}
+        exports.init = function () {
+            if (server.getDebug()) console.log("mpd init()");
+            for (var key in mpdServers) {
+                server.addIO(key, "volume", "default", "mpdClient");
+                server.addIO(key, "playStop", "default", "mpdClient");
+                server.addIO(key, "playlistPosition", "default", "mpdClient");
+            }
+            server.clearIO("mpdClient");
+        };
+    }
 
 

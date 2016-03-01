@@ -1,7 +1,8 @@
-<!doctype html>
+﻿<!doctype html>
 <html>
 <head>
 <meta charset="UTF-8">
+    <!--<script src="http://jsconsole.com/remote.js?6513C829-37E1-41BB-9AFE-DC47E65FC720"></script>-->
 <title>IO</title>
 <style>
 body, html{
@@ -10,6 +11,16 @@ height: 100%; margin:0; padding:0;
 img{
 	display: block;
 }
+
+circle {
+    stroke: rgb(178,0,255);
+    stroke-width: 6;
+    fill:green;
+}
+
+/*circle:active {
+    filter:url(#glow);
+}*/
 </style>
 	<script>		
 		// function for resizing the windows.
@@ -28,5 +39,23 @@ window.addEventListener("message", function(e){
 	</script>
 </head>
 <body>
-<img src="button.png" width="47" height="47">
+    <img src="button.png" width="47" height="47">
+    <!--<svg width="60" height="60">
+        <filter id="glow">
+            <feGaussianBlur in="StrokePaint" stdDeviation="1.5" />
+        </filter>
+        <circle id="iopoint" cx="30" cy="30" r="24"></circle>
+    </svg>-->
+    <!--<script>
+        var point = document.getElementById("iopoint");
+        point.addEventListener("touchstart", function (e) {
+            console.log("Touchstart");
+            point.style.filter = "url(#glow)";
+        },false);
+
+        point.addEventListener("touchend", function (e) {
+            console.log("Touchend");
+            point.style.filter = "";
+        },false);
+    </script>-->
 </body></html>
