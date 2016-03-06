@@ -31,7 +31,7 @@
  * TODO: Try to reconnect on connection loss
  */
 //Enable this hardware interface
-exports.enabled = true;
+exports.enabled = false;
 
 if (exports.enabled) {
     var fs = require('fs');

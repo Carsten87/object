@@ -60,7 +60,7 @@ var xml2js = require('xml2js');
 var fs = require('fs');
 
 exports.writeObject = function (objectLookup, folder, id) {
-    objectLookup[folder] = {id: id};
+    objectLookup[folder] = { id: id };
 };
 
 exports.readObject = function (objectLookup, folder) {
@@ -129,7 +129,10 @@ exports.getObjectIdFromTarget = function (folderName, dirnameO) {
             parseString(fs.readFileSync(xmlFile, "utf8"),
             function (err, result) {
                 for (var first in result) {
-                    resultXML = result[first].Tracking[0].ImageTarget[0].$.name;
+                    if (typeof (result[first].Tracking[0].ImageTarget) !== 'undefined')
+                        resultXML = result[first].Tracking[0].ImageTarget[0].$.name;
+                    else if (typeof (result[first].Tracking[0].CylinderTarget) !== 'undefined')
+                        resultXML = result[first].Tracking[0].CylinderTarget[0].$.name;
                     break;
                 }
             });
