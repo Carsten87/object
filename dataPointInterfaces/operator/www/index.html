@@ -16,15 +16,15 @@
 
         #iopoint {
             stroke: rgb(178,0,255);
-            stroke-width: 6;
+            stroke-width: 7;
             fill: grey;
         }
 
         #halo {
-            stroke: yellow;
+            stroke: rgba(255,255,0,0.8);
             stroke-width: 6;
-            fill: rgba(0,0,0,0);
-            /*filter:url(#glow);*/
+            fill: none;
+            filter:url(#glow);
             visibility: hidden;
         }
     </style>
@@ -62,11 +62,11 @@
     <svg width="66" height="66">
         <defs>
             <filter id="glow">
-                <feGaussianBlur in="StrokePaint" stdDeviation="1.5" />
+                <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" />
             </filter>
         </defs>
         <circle id="iopoint" cx="33" cy="33" r="24"></circle>
-        <circle id="halo" cx="33" cy="33" r="28"></circle>
+        <circle id="halo" cx="33" cy="33" r="29"></circle>
     </svg>
 </body>
 </html>
