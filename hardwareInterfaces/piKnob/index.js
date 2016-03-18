@@ -17,6 +17,7 @@ exports.enabled = false;
 if (exports.enabled) {
     var server = require(__dirname + '/../../libraries/HybridObjectsHardwareInterfaces'),
         GPIO = require('onoff').Gpio;
+    var ws = require('nodejs-websocket');
 
     var switchState = undefined;
     var knob1GPIO,
@@ -26,6 +27,8 @@ if (exports.enabled) {
     var CLOCKWISE = 0;
     var COUNTERCLOCKWISE = 1;
 
+    var absolute = 0.5;
+
     var rotary_a = undefined;
     var rotary_b = undefined;
     var rotary_c = undefined;
@@ -33,6 +36,22 @@ if (exports.enabled) {
     var lastState = 0;
     var direction = undefined;
     var delta;
+
+    var wserv = ws.createServer(function (conn) { }).listen(8001);
+
+    function broadcast(wserver, msg) {
+        wserver.connections.forEach(function (conn) {
+            conn.sendText(msg)
+        });
+    }
+
+    function addStep(st) {
+        absolute += step;
+        if (absolute > 1)
+            absolute = 1;
+        if (absolute < 0)
+            absolute = 0;
+    }
 
     function rotaryEvent() {
         rotary_a = knob1GPIO.readSync();
@@ -44,14 +63,22 @@ if (exports.enabled) {
         if (delta == 1) {
             server.writeIOToServer("piKnob", "value", step, "p");
             direction = CLOCKWISE;
+            addStep(step);
+            broadcast(wserv, absolute);
         } else if (delta == 3) {
             server.writeIOToServer("piKnob", "value", step, "n");
             direction = COUNTERCLOCKWISE;
+            addStep(-step);
+            broadcast(wserv, absolute);
         } else if (delta == 2) {
             if (direction == CLOCKWISE) {
-                server.writeIOToServer("piKnob", "value", step  * 2, "p");
+                server.writeIOToServer("piKnob", "value", step * 2, "p");
+                addStep(2 * step);
+                broadcast(wserv, absolute);
             } else if (direction == COUNTERCLOCKWISE) {
                 server.writeIOToServer("piKnob", "value", step * 2, "n");
+                addStep(-2 * step);
+                broadcast(wserv, absolute);
             }
         }
     }
