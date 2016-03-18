@@ -64,21 +64,21 @@ if (exports.enabled) {
             server.writeIOToServer("piKnob", "value", step, "p");
             direction = CLOCKWISE;
             addStep(step);
-            broadcast(wserv, absolute);
+            broadcast(wserv, absolute + '');
         } else if (delta == 3) {
             server.writeIOToServer("piKnob", "value", step, "n");
             direction = COUNTERCLOCKWISE;
             addStep(-step);
-            broadcast(wserv, absolute);
+            broadcast(wserv, absolute + '');
         } else if (delta == 2) {
             if (direction == CLOCKWISE) {
                 server.writeIOToServer("piKnob", "value", step * 2, "p");
                 addStep(2 * step);
-                broadcast(wserv, absolute);
+                broadcast(wserv, absolute + '');
             } else if (direction == COUNTERCLOCKWISE) {
                 server.writeIOToServer("piKnob", "value", step * 2, "n");
                 addStep(-2 * step);
-                broadcast(wserv, absolute);
+                broadcast(wserv, absolute + '');
             }
         }
     }
