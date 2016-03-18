@@ -18,6 +18,9 @@ if (exports.enabled) {
     var fs = require('fs'),
         server = require(__dirname + '/../../libraries/HybridObjectsHardwareInterfaces'),
         GPIO = require('onoff').Gpio;
+    var io = require('socket.io')(9090);
+    var connected = false;
+    io.on('connection', function (sock) { connected = true;});
 
     var switchState = undefined;
     var onGPIO,
@@ -37,6 +40,9 @@ if (exports.enabled) {
             } else if (value == 0) {
                 switchState = 1;
                 server.writeIOToServer("piSwitch", "onOff", 1, "d");
+
+                if (connected)
+                    io.emit('1');
             }
         });
 
@@ -46,6 +52,9 @@ if (exports.enabled) {
             } else if (value == 0) {
                 switchState = 0;
                 server.writeIOToServer("piSwitch", "onOff", 0, "d");
+
+                if (connected)
+                    io.emit('0');
             }
         });
     }
