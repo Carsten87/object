@@ -53,6 +53,14 @@ if (exports.enabled) {
             absolute = 0;
     }
 
+    function substractStep(st) {
+        absolute -= step;
+        if (absolute > 1)
+            absolute = 1;
+        if (absolute < 0)
+            absolute = 0;
+    }
+
     function rotaryEvent() {
         rotary_a = knob1GPIO.readSync();
         rotary_b = knob2GPIO.readSync();
@@ -68,7 +76,7 @@ if (exports.enabled) {
         } else if (delta == 3) {
             server.writeIOToServer("piKnob", "value", step, "n");
             direction = COUNTERCLOCKWISE;
-            addStep(-step);
+            substractStep(step);
             broadcast(wserv, absolute + '');
         } else if (delta == 2) {
             if (direction == CLOCKWISE) {
@@ -77,7 +85,7 @@ if (exports.enabled) {
                 broadcast(wserv, absolute + '');
             } else if (direction == COUNTERCLOCKWISE) {
                 server.writeIOToServer("piKnob", "value", step * 2, "n");
-                addStep(-2 * step);
+                substractStep(2 * step);
                 broadcast(wserv, absolute + '');
             }
         }
