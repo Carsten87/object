@@ -24,8 +24,8 @@ if (exports.enabled) {
     var onGPIO,
         offGPIO;
 
-    function broadcast(server, msg) {
-        server.connections.forEach(function (conn) {
+    function broadcast(wserver, msg) {
+        wserver.connections.forEach(function (conn) {
             conn.sendText(msg)
         });
     }
@@ -34,7 +34,7 @@ if (exports.enabled) {
      * @desc setup() runs once
      **/
     function setup() {
-        var server = ws.createServer(function (conn) { }).listen(8001);
+        var wserv = ws.createServer(function (conn) { }).listen(8001);
 
 
         server.developerOn();
@@ -47,7 +47,7 @@ if (exports.enabled) {
                 switchState = 1;
                 server.writeIOToServer("piSwitch", "onOff", 1, "d");
 
-                broadcast(server, '1');
+                broadcast(wserv, '1');
             }
         });
 
@@ -58,7 +58,7 @@ if (exports.enabled) {
                 switchState = 0;
                 server.writeIOToServer("piSwitch", "onOff", 0, "d");
 
-                broadcast(server, '0');
+                broadcast(wserv, '0');
             }
         });
     }
