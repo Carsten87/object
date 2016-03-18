@@ -18,19 +18,25 @@ if (exports.enabled) {
     var fs = require('fs'),
         server = require(__dirname + '/../../libraries/HybridObjectsHardwareInterfaces'),
         GPIO = require('onoff').Gpio;
-    var io = require('socket.io')(9090);
-    var connected = false;
-    io.on('connection', function (sock) { connected = true;});
+    var ws = require('nodejs-websocket');
 
     var switchState = undefined;
     var onGPIO,
         offGPIO;
 
+    function broadcast(server, msg) {
+        server.connections.forEach(function (conn) {
+            conn.sendText(msg)
+        });
+    }
 
     /**
      * @desc setup() runs once
      **/
     function setup() {
+        var server = ws.createServer(function (conn) { }).listen(8001);
+
+
         server.developerOn();
         onGPIO = new GPIO(4, "in", "both");
         offGPIO = new GPIO(3, "in", "both");
@@ -41,8 +47,7 @@ if (exports.enabled) {
                 switchState = 1;
                 server.writeIOToServer("piSwitch", "onOff", 1, "d");
 
-                if (connected)
-                    io.emit('1');
+                broadcast(server, '1');
             }
         });
 
@@ -53,8 +58,7 @@ if (exports.enabled) {
                 switchState = 0;
                 server.writeIOToServer("piSwitch", "onOff", 0, "d");
 
-                if (connected)
-                    io.emit('0');
+                broadcast(server, '0');
             }
         });
     }
