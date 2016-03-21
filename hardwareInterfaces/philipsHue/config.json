@@ -1,20 +1,14 @@
 {
   "Light1": {
-    "host": "localhost",
-    "url": "/api/newdeveloper/lights/1",
+    "host": "192.168.1.4",
+    "url": "/api/1d004c62883d0d72b77af7e9fd46e3/lights/1",
     "id": "Light1",
-    "port": "8000"
+    "port": "80"
   },
   "Light2": {
-    "host": "localhost",
-    "url": "/api/newdeveloper/lights/2",
+    "host": "192.168.1.4",
+    "url": "/api/1d004c62883d0d72b77af7e9fd46e3/lights/2",
     "id": "Light2",
-    "port": "8000"
-  },
-  "Light3": {
-    "host": "localhost",
-    "url": "/api/newdeveloper/lights/2",
-    "id": "Light2",
-    "port": "8000"
+    "port": "80"
   }
 }
