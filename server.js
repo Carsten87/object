@@ -140,8 +140,13 @@ function ObjectExp() {
     this.visible = false;
     this.visibleText = false;
     this.visibleEditing = false;
-    this.developer = false;
-    this.matrix3dMemory = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; // TODO use this to store UI interface for image later.
+    this.developer = true;
+    this.matrix3dMemory = [
+        [1, 0, 0, 0],
+        [0, 1, 0, 0],
+        [0, 0, 1, 0],
+        [0, 0, 0, 1]
+    ]; // TODO use this to store UI interface for image later.
     this.objectLinks = {}; // Array of ObjectLink()
     this.objectValues = {}; // Array of ObjectValue()
 }
@@ -660,28 +665,40 @@ function objectWebServer() {
         var thisObject = req.params[0];
         var thisValue = req.params[1];
 
+        var tempObject = {};
+        if (thisObject === thisValue) {
+            tempObject = objectExp[thisObject];
+        } else {
+            tempObject.objectValues[thisValue]
+        }
+
+
+
         // check that the numbers are valid numbers..
         if (typeof req.body.x === "number" && typeof req.body.y === "number" && typeof req.body.scale === "number") {
 
             // if the object is equal the datapoint id, the item is actually the object it self.
-            if (thisObject === thisValue) {
-                objectExp[thisObject].x = req.body.x;
-                objectExp[thisObject].y = req.body.y;
-                objectExp[thisObject].scale = req.body.scale;
-            }
-            else {
-                objectExp[thisObject].objectValues[thisValue].x = req.body.x;
-                objectExp[thisObject].objectValues[thisValue].y = req.body.y;
-                objectExp[thisObject].objectValues[thisValue].scale = req.body.scale;
-            }
+
+                tempObject.x = req.body.x;
+                tempObject.y = req.body.y;
+                tempObject.scale = req.body.scale;
             // console.log(req.body);
             // ask the devices to reload the objects
-            actionSender(JSON.stringify({ reloadObject: { id: thisObject, ip: objectExp[thisObject].ip } }));
-            updateStatus = "added";
+            }
 
-            // write the object state to the permanent storage.
+
+        if(typeof req.body.matrix === "object" ){
+
+                tempObject.matrix = req.body.matrix;
+            }
+
+        if ((typeof req.body.x === "number" && typeof req.body.y === "number" && typeof req.body.scale === "number") || (typeof req.body.matrix === "object" )) {
             HybridObjectsUtilities.writeObjectToFile(objectExp, req.params[0], __dirname);
+
+            actionSender(JSON.stringify({ reloadObject: { id: thisObject, ip: objectExp[thisObject].ip } }));
+            updateStatus = "added object";
         }
+
         res.send(updateStatus);
     });
 

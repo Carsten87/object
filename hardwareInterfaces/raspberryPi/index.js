@@ -55,6 +55,7 @@ if (exports.enabled) {
                 }
             }
         }
+        items = {};
     }
 
     function writeGpioToServer(err, value, item, callback) {

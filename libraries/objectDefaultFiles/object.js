@@ -57,24 +57,48 @@ if (xhr.status == 200) {
 } else {
     console.log("Error XMLHttpRequest HTTP status: " + xhr.status);
 }
+var objectVersion = "1.0";
+var objectExp = {};
+objectExp.matrixCSS = [];
+objectExp.acl = [];
+var objectExpSendMatrixCSS= false;
+var objectExpSendAcl = false;
+
+function update() {
+    // overwrite this function with your code to update synchronized with the 3D transforms
+}
 
 // function for resizing the windows.
-var objectExp = {};
+window.addEventListener("message", function (MSG) {
+    var msg = JSON.parse(MSG.data);
 
-window.addEventListener("message", function (msg) {
+    if (typeof msg.matrixCSS !== "undefined") {
+        objectExp.matrixCSS = msg.matrixCSS;
+    }
+
+    if (typeof msg.acl !== "undefined") {
+        objectExp.acl = msg.acl;
+    }
+
+    if (typeof msg.pos !== "undefined") {
     parent.postMessage(JSON.stringify(
         {
-            "pos": JSON.parse(msg.data).pos,
-            "obj": JSON.parse(msg.data).obj,
+                "pos": msg.pos,
+                "obj": msg.obj,
             "height": document.body.scrollHeight,
-            "width": document.body.scrollWidth
+                "width": document.body.scrollWidth,
+                "sendMatrixCSS" : objectExpSendMatrixCSS,
+                "sendAcl" : objectExpSendAcl
         }
         )
         // this needs to contain the final interface source
         , "*");
-    objectExp.pos = JSON.parse(msg.data).pos;
-    objectExp.obj = JSON.parse(msg.data).obj;
 
+        objectExp.pos = msg.pos;
+        objectExp.obj = msg.obj;
+    }else {
+        update();
+    }
 }, false);
 
 // adding css styles nessasary for acurate 3D transformations.
@@ -85,6 +109,85 @@ document.getElementsByTagName('head')[0].appendChild(style);
 
 
 function HybridObject() {
+
+    // subscriptions
+    this.subscribeToMatrixCSS = function() {
+        objectExpSendMatrixCSS= true;
+        if (typeof objectExp.pos !== "undefined") {
+            parent.postMessage(JSON.stringify(
+                {
+                    "pos": objectExp.pos,
+                    "obj": objectExp.obj,
+                    "height": document.body.scrollHeight,
+                    "width": document.body.scrollWidth,
+                    "sendMatrixCSS": objectExpSendMatrixCSS
+                }), "*");
+        }
+    };
+
+    this.subscribeToAcceleration = function() {
+        objectExpSendAcl = true;
+        if (typeof objectExp.pos !== "undefined") {
+            parent.postMessage(JSON.stringify(
+                {
+                    "pos": objectExp.pos,
+                    "obj": objectExp.obj,
+                    "height": document.body.scrollHeight,
+                    "width": document.body.scrollWidth,
+                    "sendAcl": objectExpSendAcl
+                }), "*");
+        }
+    };
+
+
+    this.getPossitionX = function() {
+        if (typeof objectExp.matrixCSS[3][0] !== "undefined") {
+            return objectExp.matrixCSS[3][0];
+        } else return undefined;
+    };
+
+    this.getPossitionY = function() {
+        if (typeof objectExp.matrixCSS[3][1] !== "undefined") {
+            return objectExp.matrixCSS[3][1];
+        } else return undefined;
+    };
+
+    this.getPossitionZ = function() {
+        if (typeof objectExp.matrixCSS[3][2] !== "undefined") {
+            return objectExp.matrixCSS[3][2];
+        } else return undefined;
+    };
+
+    this.getAccelerationX = function() {
+        if (typeof objectExp.acl[0] !== "undefined") {
+            return objectExp.acl[0] ;
+        } else return undefined;
+    };
+
+    this.getAccelerationY = function() {
+        if (typeof objectExp.acl[1] !== "undefined") {
+            return objectExp.acl[1] ;
+        } else return undefined;
+    };
+
+    this.getAccelerationZ = function() {
+        if (typeof objectExp.acl[2] !== "undefined") {
+            return objectExp.acl[2] ;
+        } else return undefined;
+    };
+
+    this.getOrientationX = function() {
+        if (typeof objectExp.acl[3] !== "undefined") {
+            return objectExp.acl[3] ;
+        } else return undefined;
+    };
+
+    this.getOrientationY = function() {
+        if (typeof objectExp.acl[4] !== "undefined") {
+            return objectExp.acl[4] ;
+        } else return undefined;
+    };
+
     if (typeof io !== "undefined") {
         this.object = io.connect();
 
