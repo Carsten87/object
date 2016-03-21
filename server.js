@@ -289,10 +289,10 @@ while (tempFilesInternal[0][0] === ".") {
 for (var i = tempFilesInternal.length - 1; i >= 0; i--) {
     //check if hardwareInterface is enabled, if it is, add it to the internalModules
     if (require(internalPath + "/" + tempFilesInternal[i] + "/index.js").enabled) {
-        internalModules[tempFilesInternal[i]] = require(internalPath + "/" + tempFilesInternal[i] + "/index.js");
+    internalModules[tempFilesInternal[i]] = require(internalPath + "/" + tempFilesInternal[i] + "/index.js");
     } else {
         tempFilesInternal.splice(i, 1);
-    }
+}
 }
 
 if (globalVariables.debug) console.log("ready to start internal servers");
@@ -316,7 +316,7 @@ if (globalVariables.debug) console.log("starting internal Server.");
  * @return {string} The lowercase extension of the file, such has "zip"
  */
 function getFileExtension(fileName) {
-    return fileName.substr((~-fileName.lastIndexOf(".") >>> 0) + 2).toLowerCase();
+  return fileName.substr((~-fileName.lastIndexOf(".") >>> 0) + 2).toLowerCase();
 }
 
 /**
@@ -356,12 +356,12 @@ function loadHybridObjects() {
                 objectExp[tempFolderName] = JSON.parse(fs.readFileSync(__dirname + "/objects/" + tempFiles[i] + "/object.json", "utf8"));
                 objectExp[tempFolderName].ip = ip.address();
 
-                // adding the values to the arduino lookup table so that the serial connection can take place.
+// adding the values to the arduino lookup table so that the serial connection can take place.
                 // todo this is maybe obsolete.
                 for (var tempkey in objectExp[tempFolderName].objectValues) {
                     ArduinoLookupTable.push({ obj: tempFiles[i], pos: tempkey });
                 }
-                // todo the sizes do not really save...
+// todo the sizes do not really save...
 
 
                 // todo new Data points are never writen in to the file. So this full code produces no value
@@ -583,9 +583,9 @@ function objectBeatServer() {
         if (msgContent.hasOwnProperty("id") && msgContent.hasOwnProperty("ip") && !(msgContent.id in objectExp) && !(msgContent.id in knownObjects)) {
             knownObjects[msgContent.id] = msgContent.ip;
             if (globalVariables.debug) console.log("I found new Objects: " + JSON.stringify({
-                id: msgContent.id,
-                ip: msgContent.ip
-            }));
+                    id: msgContent.id,
+                    ip: msgContent.ip
+                }));
         }
         // check if action 'ping'
         if (msgContent.action === "ping") {
@@ -684,13 +684,13 @@ function objectWebServer() {
                 tempObject.scale = req.body.scale;
             // console.log(req.body);
             // ask the devices to reload the objects
-            }
+        }
 
 
         if(typeof req.body.matrix === "object" ){
 
                 tempObject.matrix = req.body.matrix;
-            }
+        }
 
         if ((typeof req.body.x === "number" && typeof req.body.y === "number" && typeof req.body.scale === "number") || (typeof req.body.matrix === "object" )) {
             HybridObjectsUtilities.writeObjectToFile(objectExp, req.params[0], __dirname);
@@ -794,7 +794,7 @@ function objectWebServer() {
         msg.push("</table>\n</td>\n<td align='left' valign='top'>\n\n");
 
         msg.push("Links:<br>\n\n<table border='1'>\n<tr><td>ID</td><td>ObjectA</td><td>locationInA</td><td>ObjectB</td><td>locationInB</td></tr>\n");
-
+        
         if (!_.isUndefined(hybridObject)) {
             hoLinks = hybridObject.objectLinks;
             for (subKey in hoLinks) {
@@ -807,7 +807,7 @@ function objectWebServer() {
 
         msg.push("<table border='0' cellpadding='10'>\n<tr><td align='left' valign='top'>\n");
         msg.push("Interface:<br>\n\n<table border='1'>\n");
-
+        
         for (subKey in hybridObject) {
             msg.push("  <tr><td>", subKey, "</td><td>", hybridObject[subKey], "</td></tr>\n");
         }
@@ -946,7 +946,7 @@ function objectWebServer() {
 
         });
 
-        //*****************************************************************************************
+//*****************************************************************************************
         webServer.post(objectInterfaceFolder, function (req, res) {
             // if(globalVariables.debug) console.log("post 22");
             if (req.body.action === "new") {
@@ -1070,7 +1070,7 @@ function objectWebServer() {
                                 //createObjectFromTarget(filename.substr(0, filename.lastIndexOf('.')));
                                 createObjectFromTarget(ObjectExp, objectExp, filename.substr(0, filename.lastIndexOf('.')), __dirname, objectLookup, internalModules, objectBeatSender, beatPort, globalVariables.debug);
 
-                                //todo add object to the beatsender.
+//todo add object to the beatsender.
 
                                 console.log("have created a new object");
                                 fs.unlinkSync(folderD + "/" + filename);
@@ -1389,11 +1389,11 @@ function socketServer() {
 
                     objectExp[msgContent.obj].objectValues[msgContent.pos].value = msgContent.value;
                     objSend = objectExp[msgContent.obj].objectValues[msgContent.pos];
-                    objSend.value = msgContent.value;
+                            objSend.value = msgContent.value;
 
-                    if (internalModules.hasOwnProperty(objSend.type)) {
+                            if (internalModules.hasOwnProperty(objSend.type)) {
                         internalModules[objSend.type].send(objectExp[msgContent.obj].name, objectExp[msgContent.obj].objectValues[msgContent.pos].name, msgContent.value, msgContent.mode, msgContent.type);
-                    }
+                            }
 
                     objectEngine(msgContent.obj, msgContent.pos, objectExp, pluginModules);
 
@@ -1589,7 +1589,7 @@ function socketUpdater() {
 
 
                 var ip = knownObjects[link.ObjectB];
-                //console.log("this ip: "+ip);
+//console.log("this ip: "+ip);
                 if (!(ip in socketArray)) {
                     // console.log("shoudl not show up -----------");
                     socketArray[ip] = new ObjectSockets(socketPort, ip);
